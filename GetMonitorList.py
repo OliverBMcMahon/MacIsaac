@@ -16,5 +16,7 @@ def GetMonitors():
     output = cursor.fetchall() 
     return output
 
-#GetMonitors()
+def GetMonitorName(monitor_row):
+    words = monitor_row.split(',')
+    print(words)
   
