@@ -8,7 +8,7 @@ Created on Sun Dec 15 15:48:45 2024
 
 import sqlite3
 
-conn = sqlite3.connect("GymTest2.db")
+conn = sqlite3.connect("GymTest.db")
 
 cursor = conn.cursor()
 
@@ -24,7 +24,7 @@ port = 23
 cmdstr = "INSERT INTO monitors (name, mac, IP, port) VALUES(?, ?, ?, ?);"
 
 cursor.execute(cmdstr, (name1, mac1, ip1, port))
-cursor.execute(cmdstr, (name2, mac2, ip2, port))
+#cursor.execute(cmdstr, (name2, mac2, ip2, port))
 
 conn.commit()
 conn.close()

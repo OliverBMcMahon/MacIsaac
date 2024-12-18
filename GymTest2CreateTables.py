@@ -8,7 +8,7 @@ Created on Mon Dec 16 12:41:46 2024
 
 import sqlite3
 
-conn = sqlite3.connect("GymTest2.db")
+conn = sqlite3.connect("GymTest.db")
 cursor = conn.cursor()
 
 
@@ -17,10 +17,7 @@ cmdstr = '''CREATE TABLE IF NOT EXISTS reports
                 datetime TEXT,
                 monitor TEXT NOT NULL,
                 temperature REAL,
-                humidity REAL,
-                relay1 INTEGER,
-                relay2 INTEGER,
-                relay3 INTEGER);'''
+                humidity REA);'''
 
 cursor.execute(cmdstr)
 

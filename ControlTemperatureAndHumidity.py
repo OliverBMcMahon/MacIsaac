@@ -2,9 +2,10 @@ import socket
 import sqlite3
 import time
 from datetime import datetime
+from configparser import ConfigParser
 
-# Define functions that will be used in the code which follows
-# MonitorMessage is the row of data returned from the monitors table
+# Define functions that will be used
+# msg is the row of data returned from the monitors table
 def GetTemperatureFromMonitorMessage(msg):
     words = msg.decode("utf-8").split(',')
     temperature = float(words[1].strip()) 
@@ -33,7 +34,11 @@ def GetMonitorReport(name, ip, port):
     nowstr = datetime.now().strftime('%Y/%m/%d/%H/%M')
     print(nowstr)
 
-    conn = sqlite3.connect("GymTest2.db")
+    config = ConfigParser() # Get dbname
+    config.read('MacIsaac.ini')
+    dbname = config["DATABASE"]["dbname"]
+    
+    conn = sqlite3.connect(dbname)
     cursor = conn.cursor()
     cmdstr = "INSERT INTO reports (datetime, monitor, temperature, humidity) VALUES(?, ?, ?, ?);"
     cursor.execute((cmdstr),(nowstr, name, temperature, humidity))
@@ -41,8 +46,8 @@ def GetMonitorReport(name, ip, port):
     conn.commit()
     conn.close()
     
-def GetMonitors():
-    conn = sqlite3.connect("GymTest2.db")
+def GetMonitors(dbFileName):
+    conn = sqlite3.connect(dbFileName)
     cursor = conn.cursor()
     cmd = "SELECT * FROM monitors;"
     cursor.execute(cmd)
@@ -55,39 +60,41 @@ def GetMonitorName(monitor_row):
     print(words)
 
 def GetReports():
+    # Get config file parameters
+    config = ConfigParser()
+    config.read('MacIsaac.ini')
+    dbname = config["DATABASE"]["dbname"]
     # Get list of monitors
-    monitors = GetMonitors()
+    monitors = GetMonitors(dbname)
     # Extract parameters for monitor1
-    monitor = monitors[0]
-    name = monitor[0]
-    ip = monitor[2]
-    port = monitor[3]
-    # Show monitor name and ip address
-    print(name + " " + ip)
-    GetMonitorReport(name, ip, port)
+    for monitor in monitors:
+           name = monitor[0]
+           ip = monitor[2]
+           port = int(monitor[3])
+           # Show monitor name and ip address
+           print(name + " " + ip)
+           GetMonitorReport(name, ip, port)
+           
     
 # Begin application code ------------------------------------------
 def main():
     # Setup for timer interval loop
-    intervalMinutes = 5
+    # Get config file parameters
+    config = ConfigParser()
+    config.read('MacIsaac.ini')
+    intervalMinutes = config["TIMER"]["interval"]
     t1 = datetime.now()
     elapsed = 0
     while True:
         t2 = datetime.now()
         elapsed = t2 - t1
-        if elapsed.seconds/60 >= intervalMinutes:
+        if elapsed.seconds/60 >= float(intervalMinutes):
             GetReports()
             t1 = datetime.now()
         
 if __name__ == '__main__':
     main()
 
-#monitors = GetMonitors()
-# When we have 2 monitors running we will implement this loop
-#for monitor in monitors:
-#        monitor = monitors[0]
-#        ip = monitor[2]
-#        port = monitor[3]
 
 
 
