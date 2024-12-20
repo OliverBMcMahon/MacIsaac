@@ -1,80 +1,51 @@
+# -*- coding: utf-8 -*-
 import socket
 import sqlite3
 import time
+import UtilityFunctions as ufcn
+import MonitorClass
+import EnvironmentReportClass as erc
 from datetime import datetime
 from configparser import ConfigParser
 
-# Define functions that will be used
-# msg is the row of data returned from the monitors table
-def GetTemperatureFromMonitorMessage(msg):
-    words = msg.decode("utf-8").split(',')
-    temperature = float(words[1].strip()) 
-    print(temperature)
-    temperature = temperature * 1.8 + 32.0
-    print(temperature)
-    return temperature
+# Global variables
+iniFile = 'MacIsaac.ini'
+dbname = ufcn.GetDatabaseName(iniFile)
+envRports = []
 
-def GetHumidityFromMonitorMessage(msg):
-    words = msg.decode("utf-8").split(',')
-    humidity = float(words[0].strip())
-    return humidity
 
+# Functions 
 def GetMonitorReport(name, ip, port):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.connect((ip, port))
             
     hello = 'bah'
-    s.send(hello.encode())
-    
+    s.send(hello.encode())    
     msg = s.recv(1024)
-    print( msg.decode("utf-8"))
 
-    humidity = GetHumidityFromMonitorMessage(msg)
-    temperature = GetTemperatureFromMonitorMessage(msg)
-    nowstr = datetime.now().strftime('%Y/%m/%d/%H/%M')
-    print(nowstr)
-
-    config = ConfigParser() # Get dbname
-    config.read('MacIsaac.ini')
-    dbname = config["DATABASE"]["dbname"]
+    humidity = ufcn.GetHumidityFromMonitorMessage(msg)
+    temperature = ufcn.GetTemperatureFromMonitorMessage(msg)
     
+    rpt = erc.EnvironmentReport(name, temperature, humidity)
+
     conn = sqlite3.connect(dbname)
     cursor = conn.cursor()
     cmdstr = "INSERT INTO reports (datetime, monitor, temperature, humidity) VALUES(?, ?, ?, ?);"
-    cursor.execute((cmdstr),(nowstr, name, temperature, humidity))
-
+    cursor.execute((cmdstr),(rpt.rpttime, name, temperature, humidity))
     conn.commit()
-    conn.close()
+    conn.close()    
+    return rpt
     
-def GetMonitors(dbFileName):
-    conn = sqlite3.connect(dbFileName)
-    cursor = conn.cursor()
-    cmd = "SELECT * FROM monitors;"
-    cursor.execute(cmd)
-    output = cursor.fetchall() 
-    conn.close()
-    return output
-
-def GetMonitorName(monitor_row):
-    words = monitor_row.split(',')
-    print(words)
 
 def GetReports():
-    # Get config file parameters
-    config = ConfigParser()
-    config.read('MacIsaac.ini')
-    dbname = config["DATABASE"]["dbname"]
-    # Get list of monitors
-    monitors = GetMonitors(dbname)
-    # Extract parameters for monitor1
+    global envRports
+    envRports.clear() # We clear list because we only want 1 report per monitor.
+    monitors = ufcn.GetMonitors(dbname)
     for monitor in monitors:
-           name = monitor[0]
-           ip = monitor[2]
-           port = int(monitor[3])
-           # Show monitor name and ip address
-           print(name + " " + ip)
-           GetMonitorReport(name, ip, port)
-           
+        newrpt = GetMonitorReport(monitor.name, monitor.ip, monitor.port)
+        print(monitor.name, monitor.ip, monitor.port)
+        envRports.append(newrpt)
+    return envRports
     
 # Begin application code ------------------------------------------
 def main():
@@ -85,13 +56,15 @@ def main():
     intervalMinutes = config["TIMER"]["interval"]
     t1 = datetime.now()
     elapsed = 0
+    global envRports
     while True:
         t2 = datetime.now()
         elapsed = t2 - t1
         if elapsed.seconds/60 >= float(intervalMinutes):
-            GetReports()
+            envRports = GetReports()
             t1 = datetime.now()
-        
+   
+# Run main() if this file is being run directly       
 if __name__ == '__main__':
     main()
 
