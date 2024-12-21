@@ -1,18 +1,20 @@
 # -*- coding: utf-8 -*-
 import socket
 import sqlite3
-import time
-import UtilityFunctions as ufcn
+import logging
 import MonitorClass
-import EnvironmentReportClass as erc
+import GetLogFileName
 from datetime import datetime
+import UtilityFunctions as ufcn
+import EnvironmentReportClass as erc
 from configparser import ConfigParser
 
 # Global variables
+envRports = []
 iniFile = 'MacIsaac.ini'
 dbname = ufcn.GetDatabaseName(iniFile)
-envRports = []
-
+LOG_FORMAT = "%(Levelname)s %(asctime)s - %(message)s"
+logfilename = GetLogFileName.CreateLogfilename()
 
 # Functions 
 def GetMonitorReport(name, ip, port):
@@ -49,6 +51,10 @@ def GetReports():
     
 # Begin application code ------------------------------------------
 def main():
+    logging.basicConfig(filename = logfilename, level = logging.DEBUG, format = LOG_FORMAT, filemode= 'w') 
+    logger = logging.getLogger()
+    logger.debug("Begin new run.")
+    
     # Setup for timer interval loop
     # Get config file parameters
     config = ConfigParser()
