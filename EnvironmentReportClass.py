@@ -12,4 +12,11 @@ class EnvironmentReport:
         self.rpttime = datetime.now()
         self.name = name
         self.temperature = temperature
-        self.hunidity =humidity
+        self.hunidity = humidity
+        
+    def ToString(self):
+        msg = f"{self.name} {self.rpttime} {self.temperature} {self.hunidity}"
+        return msg
+    
+if __name__ == '__main__':
+    print(datetime.now())

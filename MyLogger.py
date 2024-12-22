@@ -7,34 +7,42 @@ Created on Sat Dec 21 09:22:41 2024
 # Functions for writing messages to log file.
 from datetime import datetime
 
-def log_msg(fname, msg):
+# Globals
+fname = ""
+
+# assignLogfilename must be called before any other calls.
+def assignLogfilename(filename):
+    global fname
+    fname = filename
+
+def log_msg(msg):
     with open(fname, 'a') as logfile:
         logfile.write(msg)
        
-def logInfoMsg(fname, msg):
+def logInfoMsg(msg):
     time = getTimeStr()
     fmtstr = "%s::INFO--> %s\n" %(time, msg)
-    log_msg(fname, fmtstr)
+    log_msg(fmtstr)
 
-def logDebugMsg(fname, msg):
+def logDebugMsg(msg):
     time = getTimeStr()
     fmtstr = "%s::DEBUG--> %s\n" %(time, msg)
-    log_msg(fname, fmtstr)
+    log_msg(fmtstr)
 
-def logWarnMsg(fname, msg):
+def logWarnMsg(msg):
     time = getTimeStr()
     fmtstr = "%s::WARN--> %s\n" %(time, msg)
-    log_msg(fname, fmtstr)
+    log_msg(fmtstr)
 
-def logErrorMsg(fname, msg):
+def logErrorMsg(msg):
     time = getTimeStr()
     fmtstr = "%s::ERROR--> %s\n" %(time, msg)
-    log_msg(fname, fmtstr)
+    log_msg(fmtstr)
 
-def logFailMsg(fname, msg):
+def logFailMsg(msg):
     time = getTimeStr()
     fmtstr = "%s::FAIL--> %s\n" %(time, msg)
-    log_msg(fname, fmtstr)
+    log_msg(fmtstr)
    
 def getTimeStr():
     now = datetime.now()
@@ -46,8 +54,8 @@ def getTimeStr():
     return timestr
    
 if __name__ == "__main__":
-    logInfoMsg("log.file", "INFO message")
-    logDbgMsg("log.file", "DEBUG message")
-    logWarnMsg("log.file", "WARN message")
-    logErrorMsg("log.file", "ERROR message")
-    logFailMsg("log.file", "FAIL message")
+    logInfoMsg("INFO message")
+    logDebugMsg("DEBUG message")
+    logWarnMsg("WARN message")
+    logErrorMsg("ERROR message")
+    logFailMsg("FAIL message")

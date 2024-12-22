@@ -5,6 +5,7 @@ Created on Thu Dec 19 15:54:56 2024
 @author: mcmah
 """
 import sqlite3
+import MyLogger as logger
 import MonitorClass
 from configparser import ConfigParser
 
@@ -21,25 +22,35 @@ def GetHumidityFromMonitorMessage(msg):
     return humidity
 
 def GetDatabaseName(iniFile):
-    config = ConfigParser() 
-    config.read(iniFile)
-    name = config["DATABASE"]["dbname"]
-    print(name)
+    try:
+        config = ConfigParser() 
+        config.read(iniFile)
+        name = config["DATABASE"]["dbname"]
+        print(name)
+    except IOError as err:
+        logger.logErrorMsg(err)
     return name
     
-def GetMonitors(dbname):
+def GetMonitors(iniFile):
+    dbname = GetDatabaseName(iniFile)
     monitor_list = []
-    conn = sqlite3.connect(dbname)
-    cursor = conn.cursor()
-    cmd = "SELECT * FROM monitors;"
-    cursor.execute(cmd)
-    output = cursor.fetchall() 
-    conn.close()
-    for sublist in output:
-        gmname = sublist[0]
-        gmmac = sublist[1]
-        gmip = sublist[2]
-        gmport = sublist[3]
-        mon = MonitorClass.Monitor(gmname, gmmac, gmip, gmport)
-        monitor_list.append(mon)
+    try:
+        conn = sqlite3.connect(dbname)
+        cursor = conn.cursor()
+        cmd = "SELECT * FROM monitors;"
+        cursor.execute(cmd)
+        output = cursor.fetchall() 
+        
+        for sublist in output:
+            gmname = sublist[0]
+            gmmac = sublist[1]
+            gmip = sublist[2]
+            gmport = sublist[3]
+            mon = MonitorClass.Monitor(gmname, gmmac, gmip, gmport)
+            monitor_list.append(mon)
+    except sqlite3.Error as e:
+        # Handle the exception
+        logger.logErrorMsg(f"An sqlite error occurred: {e}")
+    finally:
+        conn.close()
     return monitor_list
