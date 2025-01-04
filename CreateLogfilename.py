@@ -9,10 +9,11 @@ Created on Sat Dec 21 06:35:45 2024
 import os
 from datetime import datetime
 
-def CreateLogfilename():
-    # Get a unique name for log file.
+ # Get a unique name for log file.
+def CreateLogfilename(rootname):
     path = os.path.abspath(os.getcwd())
     path += "\\Logs"
+
     # Create Logs folder, if it doesn't exist.
     if not os.path.exists(path):
         os.makedirs(path)
@@ -23,9 +24,9 @@ def CreateLogfilename():
     day = now.strftime("%d")
     time = now.strftime("%H:%M:%S")
     time = time.replace(":","_")
-    logfilename = "%s\\Log_%s_%s_%s_%s.log" %(path, year, month, day, time)
-    print(logfilename)
+    logfilename = "%s\\%s_%s_%s_%s_%s.log" %(path, rootname, year, month, day, time)
+    #print(logfilename)
     return logfilename
 
 if __name__ == "__main__":
-    name = CreateLogfilename()
+    name = CreateLogfilename("Test")

@@ -8,9 +8,9 @@ Created on Fri Dec 20 07:02:14 2024
 import os
 from datetime import datetime
 
-def CreateLogfilename():
+def CreateLogfilename(rootname):
     path = os.path.abspath(os.getcwd())
-    path += "\\Log"
+    path += "\\Logs"
    
     if not os.path.exists(path):
         os.makedirs(path)
@@ -21,10 +21,10 @@ def CreateLogfilename():
     day = now.strftime("%d")
     time = now.strftime("%H:%M:%S")
     time = time.replace(":","_")
-    logfilename = "%s\\Log_%s_%s_%s_%s.log" %(path, year, month, day, time)
+    logfilename = "%s\\%s_%s_%s_%s_%s.log" %(path, rootname, year, month, day, time)
     print(logfilename)
     return logfilename
 
 if __name__ == "__main__":
-    name = CreateLogfilename()
+    name = CreateLogfilename("Test")
    

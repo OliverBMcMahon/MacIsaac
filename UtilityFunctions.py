@@ -26,7 +26,6 @@ def GetDatabaseName(iniFile):
         config = ConfigParser() 
         config.read(iniFile)
         name = config["DATABASE"]["dbname"]
-        print(name)
     except IOError as err:
         logger.logErrorMsg(err)
     return name
@@ -42,11 +41,11 @@ def GetMonitors(iniFile):
         output = cursor.fetchall() 
         
         for sublist in output:
-            gmname = sublist[0]
-            gmmac = sublist[1]
-            gmip = sublist[2]
-            gmport = sublist[3]
-            mon = MonitorClass.Monitor(gmname, gmmac, gmip, gmport)
+            name = sublist[0]
+            mac = sublist[1]
+            ip = sublist[2]
+            port = sublist[3]
+            mon = MonitorClass.Monitor(name, mac, ip, port)
             monitor_list.append(mon)
     except sqlite3.Error as e:
         # Handle the exception
@@ -54,3 +53,22 @@ def GetMonitors(iniFile):
     finally:
         conn.close()
     return monitor_list
+
+def GetMonitorNames(dbname):
+    monitor_names = []
+    try:
+        conn = sqlite3.connect(dbname)
+        cursor = conn.cursor()
+        cmd = "SELECT * FROM monitors;"
+        cursor.execute(cmd)
+        output = cursor.fetchall() 
+        
+        for sublist in output:
+            name = sublist[0]
+            monitor_names.append(name)
+    except sqlite3.Error as e:
+        # Handle the exception
+        logger.logErrorMsg(f"An sqlite error occurred: {e}")
+    finally:
+        conn.close()
+    return monitor_names

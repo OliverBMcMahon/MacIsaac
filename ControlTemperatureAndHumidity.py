@@ -18,7 +18,8 @@ def GetReports():
     reports = []
     logger.logInfoMsg("GetReports()")
     dbname = ufcn.GetDatabaseName(iniFile)
-    monitors = ufcn.GetMonitors(iniFile)   
+    monitors = ufcn.GetMonitors(iniFile) 
+    print(monitors)
     for monitor in monitors:
         try:
             conn = sqlite3.connect(dbname)

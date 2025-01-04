@@ -23,6 +23,7 @@ iniFile = 'Monitors.ini'
 
 # Functions 
 def GetMonitorReport(name, ip, port):
+    msg = ""
     try:
         # Create socket to connect to Arduino monitor.
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -30,19 +31,25 @@ def GetMonitorReport(name, ip, port):
         hello = '123'
         s.send(hello.encode())    
         msg = s.recv(1024)
-    
         humidity = ufcn.GetHumidityFromMonitorMessage(msg)
         temperature = ufcn.GetTemperatureFromMonitorMessage(msg)
-        now = datetime.now()  
-
-        dbname = ufcn.GetDatabaseName(iniFile)
+    except socket.error as err:
+        print("GetMonitorReport error")
+        print(ip)
+        print(err)
+        logger.logErrorMsg(err)   
+        
+    now = datetime.now()  
+    dbname = ufcn.GetDatabaseName(iniFile)
+    try:
         conn = sqlite3.connect(dbname)
         cursor = conn.cursor()
         cmdstr = "INSERT INTO reports (datetime, monitor, temperature, humidity) VALUES(?, ?, ?, ?);"
         cursor.execute((cmdstr),(now, name, temperature, humidity))
         conn.commit()
-    except socket.error as err:
+    except Exception as err:
         logger.logErrorMsg(err)
+        print(err)
     finally:
         conn.close()    
 
@@ -56,7 +63,7 @@ def GetReports():
 # Begin application code ------------------------------------------
 def main():
     # Get unique nasme for logfile.
-    logfile = clf.CreateLogfilename("Monitors")
+    logfile = clf.CreateLogfilename("MONITORS")
     # Send log filename to logger.
     logger.assignLogfilename(logfile)
     logger.logInfoMsg("Begin new run.")
@@ -71,11 +78,16 @@ def main():
     t1str = "Start new run: " + t1.strftime("%Y/%m/%d %H:%M:%S")
     elapsed = 0
     print(t1str )
+    
     while True:
         t2 = datetime.now()
         elapsed = t2 - t1
         if elapsed.seconds/60 >= float(intervalMinutes):
-            GetReports()
+            #GetReports()
+            ip = "192.168.40.92"
+            port = 23
+            name = "CEILING"
+            GetMonitorReport(name, ip, port)
             # Update Arduino's interval start time.
             t1 = datetime.now()
           
