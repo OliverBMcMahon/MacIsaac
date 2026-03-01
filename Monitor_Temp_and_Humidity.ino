@@ -6,9 +6,9 @@
 #include <SPI.h>
 #include <Ethernet.h>
 
-byte mac[] = {  0xA8, 0x61, 0x0A, 0x0F, 0x1A, 0xAA }; // Ethernet shield #1
-IPAddress ip(192, 168, 40, 199); // Change to match Arduino static IP as needed
-byte gateway[] = {192, 168, 40, 1}; // Change to match network gateway
+byte mac[] = {0xA8, 0x61, 0x0A, 0x0F, 0x1A, 0xAA}; // Ethernet shield #1
+IPAddress ip(10, 10, 25, 199); // Change to match Arduino static IP as needed
+byte gateway[] = {10, 10, 25, 1}; // Change to match network gateway
 byte subnet[] = {255, 255, 255, 0}; // Change to match network subnet mask
 boolean haveMsg = false;
 
@@ -29,56 +29,31 @@ char tempStr[12];
 
 void setup()
 {
-  char msg[32];
   Serial.begin(9600);
-  while(!Serial);
-  Serial.println();
+  dht.begin();
 
-	dht.begin();
-  
-  // start the Ethernet connection and the server:
-  Ethernet.begin(mac, ip, gateway, gateway, subnet);
-  delay(1000);
-
-  ip = Ethernet.localIP();
-  Serial.println("Arduino IP address is: ");
-  for (byte b=0; b < 4; b++)
-  {
-    Serial.print(ip[b], DEC);
-    Serial.print(",");
-  }
-  Serial.println();
+  Ethernet.begin(mac, ip);
   server.begin();
-  delay(1000);
 }
 
 void loop()
 {
-  // listen for incoming clients
   EthernetClient client = server.available();
-  if (client) 
-  {
-    if (haveMsg == false) // Only do this once
-    {
-      Serial.println("New client connected.");
-      haveMsg = true;
-    }
-    //Read data and store it to variables hum and temp
-    hum = getHumidity();
-    temp= getTemperature();
+  if (!client) return;
 
-    //Print temp and humidity values to serial monitor
-    dtostrf((double)hum, 6, 1, humStr);
-    dtostrf((double)temp, 6, 1, tempStr);
-    sprintf(buff, "%s,%s", humStr, tempStr);
-    Serial.println(buff);
-    
-    client.flush();
-    client.write(buff);
+  float hum = dht.readHumidity();
+  float temp = dht.readTemperature();
+
+  if (isnan(hum) || isnan(temp)) {
+    client.println("ERR");
     client.stop();
+    return;
   }
-    
-    delay(1000); 
+
+  client.print(hum, 1);
+  client.print(",");
+  client.println(temp, 1);
+  client.stop();
 }
 
 double getTemperature()
